@@ -74,34 +74,34 @@ Explicitly excluded from hackathon demo.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | TBD | Pending |
-| PLUG-02 | TBD | Pending |
-| PLUG-03 | TBD | Pending |
-| PLUG-04 | TBD | Pending |
-| PLUG-05 | TBD | Pending |
-| PLUG-06 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| AGENT-01 | TBD | Pending |
-| AGENT-02 | TBD | Pending |
-| AGENT-03 | TBD | Pending |
-| AGENT-04 | TBD | Pending |
-| AGENT-05 | TBD | Pending |
-| DEMO-01 | TBD | Pending |
-| DEMO-02 | TBD | Pending |
-| DEMO-03 | TBD | Pending |
+| PLUG-01 | Phase 2B | Pending |
+| PLUG-02 | Phase 2B | Pending |
+| PLUG-03 | Phase 2B | Pending |
+| PLUG-04 | Phase 4 | Pending |
+| PLUG-05 | Phase 4 | Pending |
+| PLUG-06 | Phase 4 | Pending |
+| API-01 | Phase 2A | Pending |
+| API-02 | Phase 2A | Pending |
+| API-03 | Phase 2A | Pending |
+| API-04 | Phase 2A | Pending |
+| AGENT-01 | Phase 2A | Pending |
+| AGENT-02 | Phase 2A | Pending |
+| AGENT-03 | Phase 2A | Pending |
+| AGENT-04 | Phase 2A | Pending |
+| AGENT-05 | Phase 2A | Pending |
+| DEMO-01 | Phase 2C | Pending |
+| DEMO-02 | Phase 2C | Pending |
+| DEMO-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 (pending roadmap)
+- Mapped to phases: 18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 after initial definition*
+*Last updated: 2026-01-21 after roadmap creation*
