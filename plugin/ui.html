@@ -2,27 +2,33 @@
 <html>
 <head>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: Inter, system-ui, sans-serif;
-      padding: 16px;
+      padding: 20px;
       margin: 0;
+      background: #FFFFFF;
     }
     h3 {
       margin: 0 0 16px 0;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
+      color: #333;
     }
     button {
-      padding: 10px 16px;
+      padding: 12px 16px;
       margin: 4px 0;
       cursor: pointer;
       background: #18A0FB;
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
       width: 100%;
+      transition: background 0.2s;
     }
     button:hover {
       background: #0D8DE8;
@@ -33,28 +39,163 @@
     }
     #result {
       margin-top: 16px;
-      padding: 12px;
-      background: #F5F5F5;
-      border-radius: 6px;
-      font-size: 12px;
-      white-space: pre-wrap;
-      min-height: 100px;
-      max-height: 350px;
+      max-height: 500px;
       overflow-y: auto;
     }
-    .error {
-      color: #F24822;
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #F5F5F5;
+      border-radius: 8px;
+      margin-bottom: 12px;
     }
-    .loading {
+    .summary-count {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+    .summary-frames {
+      font-size: 12px;
       color: #666;
-      font-style: italic;
+    }
+    .finding-card {
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border: 1px solid #E5E5E5;
+    }
+    .finding-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .finding-body {
+      padding: 0 16px 12px 16px;
+      background: #FAFAFA;
+    }
+    .severity-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .severity-critical {
+      background: #FFEBEE;
+      color: #D32F2F;
+    }
+    .severity-warning {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+    .severity-info {
+      background: #E3F2FD;
+      color: #1565C0;
+    }
+    .finding-header.critical {
+      background: #FFEBEE;
+      border-left: 4px solid #D32F2F;
+    }
+    .finding-header.warning {
+      background: #FFF3E0;
+      border-left: 4px solid #FF9800;
+    }
+    .finding-header.info {
+      background: #E3F2FD;
+      border-left: 4px solid #2196F3;
+    }
+    .finding-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      flex: 1;
+    }
+    .finding-category {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .finding-description {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .finding-recommendation {
+      font-size: 12px;
+      color: #1565C0;
+      background: #E3F2FD;
+      padding: 8px 12px;
+      border-radius: 6px;
+      line-height: 1.4;
+    }
+    .finding-recommendation strong {
+      color: #0D47A1;
+    }
+    .no-issues {
+      text-align: center;
+      padding: 40px 20px;
+      background: #E8F5E9;
+      border-radius: 8px;
+      color: #2E7D32;
+    }
+    .no-issues h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+    .no-issues p {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+    .error-box {
+      padding: 16px;
+      background: #FFEBEE;
+      border-radius: 8px;
+      color: #C62828;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .loading-box {
+      padding: 20px;
+      background: #F5F5F5;
+      border-radius: 8px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+    }
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #E0E0E0;
+      border-top-color: #18A0FB;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 12px auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .initial-state {
+      padding: 20px;
+      background: #F5F5F5;
+      border-radius: 8px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
   <h3>Design Review AI</h3>
   <button id="analyze">Review Selection</button>
-  <div id="result">Select frames and click "Review Selection" to analyze.</div>
+  <div id="result">
+    <div class="initial-state">Select frames and click "Review Selection" to analyze your design.</div>
+  </div>
 
   <script>
     const resultDiv = document.getElementById('result');
@@ -65,14 +206,23 @@
     // Request design data from sandbox
     analyzeBtn.addEventListener('click', () => {
       analyzeBtn.disabled = true;
-      resultDiv.textContent = 'Extracting design data...';
-      resultDiv.className = 'loading';
+      resultDiv.innerHTML = `
+        <div class="loading-box">
+          <div class="loading-spinner"></div>
+          Extracting design data...
+        </div>
+      `;
       parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
     });
 
     // Call backend API
     async function analyzeDesign(designData) {
-      resultDiv.textContent = 'Analyzing design with AI...';
+      resultDiv.innerHTML = `
+        <div class="loading-box">
+          <div class="loading-spinner"></div>
+          Analyzing design with AI...
+        </div>
+      `;
 
       try {
         const response = await fetch(`${BACKEND_URL}/review/analyze`, {
@@ -100,41 +250,67 @@
         }, '*');
 
       } catch (error) {
-        resultDiv.className = 'error';
         if (error.message.includes('Failed to fetch')) {
-          resultDiv.textContent = `Error: Cannot connect to backend.\n\nMake sure the backend is running:\ncd backend && uvicorn app.main:app --reload`;
+          resultDiv.innerHTML = `
+            <div class="error-box">
+              <strong>Cannot connect to backend</strong><br><br>
+              Make sure the backend is running:<br>
+              <code>cd backend && uvicorn app.main:app --reload</code>
+            </div>
+          `;
         } else {
-          resultDiv.textContent = `Error: ${error.message}`;
+          resultDiv.innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
         }
       } finally {
         analyzeBtn.disabled = false;
       }
     }
 
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     // Display analysis results
     function displayResult(result) {
-      resultDiv.className = '';
-
       if (!result.findings || result.findings.length === 0) {
-        resultDiv.textContent = `No issues found!\n\nFrames analyzed: ${result.frames_analyzed}\n\n${result.summary || 'Design looks good.'}`;
+        resultDiv.innerHTML = `
+          <div class="no-issues">
+            <h4>No issues found!</h4>
+            <p>Frames analyzed: ${result.frames_analyzed}</p>
+          </div>
+        `;
         return;
       }
 
-      let output = `Found ${result.findings.length} issue(s)\n`;
-      output += `Frames analyzed: ${result.frames_analyzed}\n\n`;
+      let html = `
+        <div class="summary-bar">
+          <span class="summary-count">${result.findings.length} issue${result.findings.length > 1 ? 's' : ''} found</span>
+          <span class="summary-frames">${result.frames_analyzed} frame${result.frames_analyzed > 1 ? 's' : ''} analyzed</span>
+        </div>
+      `;
 
-      result.findings.forEach((finding, i) => {
-        output += `${i + 1}. [${finding.severity.toUpperCase()}] ${finding.title}\n`;
-        output += `   Category: ${finding.category}\n`;
-        output += `   ${finding.description}\n`;
-        output += `   Fix: ${finding.recommendation}\n\n`;
+      result.findings.forEach((finding) => {
+        const severityClass = finding.severity.toLowerCase();
+        html += `
+          <div class="finding-card">
+            <div class="finding-header ${severityClass}">
+              <span class="severity-badge severity-${severityClass}">${finding.severity}</span>
+              <span class="finding-title">${escapeHtml(finding.title)}</span>
+            </div>
+            <div class="finding-body">
+              <div class="finding-category">${escapeHtml(finding.category)}</div>
+              <div class="finding-description">${escapeHtml(finding.description)}</div>
+              <div class="finding-recommendation">
+                <strong>Fix:</strong> ${escapeHtml(finding.recommendation)}
+              </div>
+            </div>
+          </div>
+        `;
       });
 
-      if (result.summary) {
-        output += `Summary: ${result.summary}`;
-      }
-
-      resultDiv.textContent = output;
+      resultDiv.innerHTML = html;
     }
 
     // Handle messages from sandbox
@@ -147,8 +323,7 @@
       }
 
       if (msg.type === 'error') {
-        resultDiv.className = 'error';
-        resultDiv.textContent = `Error: ${msg.message}`;
+        resultDiv.innerHTML = `<div class="error-box">${escapeHtml(msg.message)}</div>`;
         analyzeBtn.disabled = false;
       }
     };

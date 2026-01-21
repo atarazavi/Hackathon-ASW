@@ -1,5 +1,5 @@
 // Design Review AI - Main plugin code (sandbox)
-figma.showUI(__html__, { width: 400, height: 500 });
+figma.showUI(__html__, { width: 480, height: 640 });
 
 // Type definitions for extracted design data
 interface ExtractedFrame {

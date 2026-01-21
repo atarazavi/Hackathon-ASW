@@ -1,6 +1,6 @@
 "use strict";
 // Design Review AI - Main plugin code (sandbox)
-figma.showUI(__html__, { width: 400, height: 500 });
+figma.showUI(__html__, { width: 480, height: 640 });
 // Helper: Convert Figma RGB (0-1) to hex
 function rgbToHex(color) {
     const r = Math.round(color.r * 255);
