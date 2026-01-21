@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Current Position
 
 Phase: 2 of 4 (2A Backend, 2B Plugin, 2C Assets - parallel)
-Plan: 0 of 6 in current phase
-Status: Ready to plan Phase 2
-Last activity: 2026-01-21 - Phase 1 verified complete
+Plan: 1 of 6 in current phase (2A-01 complete)
+Status: In progress - executing Phase 2 plans
+Last activity: 2026-01-21 - Completed 2A-01-PLAN.md
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 12.5 min
-- Total execution time: 0.42 hours
+- Total plans completed: 3
+- Average duration: 9 min
+- Total execution time: 0.45 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-setup | 2 | 25 min | 12.5 min |
+| 2A-backend | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-02 (23 min)
-- Trend: Not enough data
+- Last 5 plans: 01-01 (2 min), 01-02 (23 min), 2A-01 (2 min)
+- Trend: Improving (simple plans execute fast)
 
 *Updated after each plan completion*
 
@@ -48,6 +49,8 @@ Recent decisions affecting current work:
 - 01-01: Pydantic Settings with .env file for type-safe Azure OpenAI config
 - 01-02: Removed devAllowedDomains from manifest (unsupported Figma field)
 - 01-02: Placeholder plugin ID - Figma assigns real ID on import
+- 2A-01: API version 2024-10-01-preview for structured outputs support
+- 2A-01: Settings on app.state via lifespan (removed lru_cache pattern)
 
 ### Pending Todos
 
@@ -59,6 +62,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-21 12:28
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-01-21 12:19
+Stopped at: Completed 2A-01-PLAN.md
 Resume file: None
