@@ -9,9 +9,9 @@ Requirements for hackathon demo. Each maps to roadmap phases.
 
 ### Figma Plugin
 
-- [ ] **PLUG-01**: Designer can select one or multiple frames in Figma and trigger review
-- [ ] **PLUG-02**: Plugin extracts design data (layers, styles, tokens) from all selected frames
-- [ ] **PLUG-03**: Plugin calls backend API with extracted design data
+- [x] **PLUG-01**: Designer can select one or multiple frames in Figma and trigger review ✓
+- [x] **PLUG-02**: Plugin extracts design data (layers, styles, tokens) from all selected frames ✓
+- [x] **PLUG-03**: Plugin calls backend API with extracted design data ✓
 - [ ] **PLUG-04**: Plugin displays structured findings in a results panel
 - [ ] **PLUG-05**: Findings show severity level (critical/warning/info)
 - [ ] **PLUG-06**: Findings show actionable recommendations
@@ -78,9 +78,9 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | Phase 2B | Pending |
-| PLUG-02 | Phase 2B | Pending |
-| PLUG-03 | Phase 2B | Pending |
+| PLUG-01 | Phase 2B | Complete |
+| PLUG-02 | Phase 2B | Complete |
+| PLUG-03 | Phase 2B | Complete |
 | PLUG-04 | Phase 4 | Pending |
 | PLUG-05 | Phase 4 | Pending |
 | PLUG-06 | Phase 4 | Pending |
