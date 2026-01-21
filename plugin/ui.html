@@ -48,10 +48,11 @@
   <script>
     const resultDiv = document.getElementById('result');
 
-    document.getElementById('analyze').onclick = () => {
+    document.getElementById('analyze').addEventListener('click', () => {
+      console.log('Button clicked');
       resultDiv.textContent = 'Getting selection...';
       parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
-    };
+    });
 
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
