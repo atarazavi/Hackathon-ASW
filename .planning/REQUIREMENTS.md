@@ -18,18 +18,18 @@ Requirements for hackathon demo. Each maps to roadmap phases.
 
 ### Backend API
 
-- [ ] **API-01**: Backend exposes `/analyze` POST endpoint
-- [ ] **API-02**: Endpoint accepts design data payload with multiple frames (JSON array)
-- [ ] **API-03**: Endpoint returns structured findings (JSON)
-- [ ] **API-04**: Backend integrates with Azure OpenAI for analysis
+- [x] **API-01**: Backend exposes `/analyze` POST endpoint ✓
+- [x] **API-02**: Endpoint accepts design data payload with multiple frames (JSON array) ✓
+- [x] **API-03**: Endpoint returns structured findings (JSON) ✓
+- [x] **API-04**: Backend integrates with Azure OpenAI for analysis ✓
 
 ### Analysis Agent
 
-- [ ] **AGENT-01**: Agent detects missing UI states (loading, error, empty, disabled, hover)
-- [ ] **AGENT-02**: Agent detects accessibility gaps (contrast, labels, focus states)
-- [ ] **AGENT-03**: Agent detects design system violations (tokens, spacing, colors vs guidelines)
-- [ ] **AGENT-04**: Agent detects responsiveness gaps (compares selected frames to identify missing breakpoints)
-- [ ] **AGENT-05**: Agent uses provided guidelines document for reference
+- [x] **AGENT-01**: Agent detects missing UI states (loading, error, empty, disabled, hover) ✓
+- [x] **AGENT-02**: Agent detects accessibility gaps (contrast, labels, focus states) ✓
+- [x] **AGENT-03**: Agent detects design system violations (tokens, spacing, colors vs guidelines) ✓
+- [x] **AGENT-04**: Agent detects responsiveness gaps (compares selected frames to identify missing breakpoints) ✓
+- [x] **AGENT-05**: Agent uses provided guidelines document for reference ✓
 
 ### Demo Assets
 
@@ -84,15 +84,15 @@ Which phases cover which requirements.
 | PLUG-04 | Phase 4 | Pending |
 | PLUG-05 | Phase 4 | Pending |
 | PLUG-06 | Phase 4 | Pending |
-| API-01 | Phase 2A | Pending |
-| API-02 | Phase 2A | Pending |
-| API-03 | Phase 2A | Pending |
-| API-04 | Phase 2A | Pending |
-| AGENT-01 | Phase 2A | Pending |
-| AGENT-02 | Phase 2A | Pending |
-| AGENT-03 | Phase 2A | Pending |
-| AGENT-04 | Phase 2A | Pending |
-| AGENT-05 | Phase 2A | Pending |
+| API-01 | Phase 2A | Complete |
+| API-02 | Phase 2A | Complete |
+| API-03 | Phase 2A | Complete |
+| API-04 | Phase 2A | Complete |
+| AGENT-01 | Phase 2A | Complete |
+| AGENT-02 | Phase 2A | Complete |
+| AGENT-03 | Phase 2A | Complete |
+| AGENT-04 | Phase 2A | Complete |
+| AGENT-05 | Phase 2A | Complete |
 | DEMO-01 | Phase 2C | Pending |
 | DEMO-02 | Phase 2C | Pending |
 | DEMO-03 | Phase 4 | Pending |

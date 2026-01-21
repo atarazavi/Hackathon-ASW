@@ -13,7 +13,7 @@ Build a Figma plugin that reviews designs for completeness before developer hand
 Phases 2A, 2B, 2C execute in parallel (different team members).
 
 - [x] **Phase 1: Setup** - Project scaffolding and environment verification ✓
-- [ ] **Phase 2A: Backend** - Python API with Azure OpenAI analysis agent
+- [x] **Phase 2A: Backend** - Python API with Azure OpenAI analysis agent ✓
 - [ ] **Phase 2B: Plugin** - Figma plugin data extraction and API integration
 - [ ] **Phase 2C: Assets** - Guidelines document and demo test designs
 - [ ] **Phase 3: Integration** - Connect plugin to backend, end-to-end flow
@@ -53,8 +53,8 @@ Plans:
 **Team**: Full-stack developer
 
 Plans:
-- [ ] 2A-01-PLAN.md — Pydantic models, endpoint skeleton, AsyncAzureOpenAI lifespan
-- [ ] 2A-02-PLAN.md — Analyzer service with Azure OpenAI structured outputs
+- [x] 2A-01-PLAN.md — Pydantic models, endpoint skeleton, AsyncAzureOpenAI lifespan ✓
+- [x] 2A-02-PLAN.md — Analyzer service with Azure OpenAI structured outputs ✓
 
 ---
 
@@ -139,7 +139,7 @@ Phase 1 (all) -> Phase 2A/2B/2C (parallel) -> Phase 3 -> Phase 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Setup | 2/2 | Complete ✓ | 2026-01-21 |
-| 2A. Backend | 0/2 | Planned | - |
+| 2A. Backend | 2/2 | Complete ✓ | 2026-01-21 |
 | 2B. Plugin | 0/2 | Planned | - |
 | 2C. Assets | 0/2 | Planned | - |
 | 3. Integration | 0/2 | Not started | - |
