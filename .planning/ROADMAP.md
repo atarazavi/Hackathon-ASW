@@ -66,13 +66,13 @@ Plans:
   1. Designer can select one or multiple frames and click "Review"
   2. Plugin extracts layers, styles, and tokens from selected frames
   3. Plugin successfully POSTs extracted data to backend /analyze endpoint
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Team**: Frontend developers 1 and 2
 
 Plans:
-- [ ] 2B-01: Frame selection and data extraction
-- [ ] 2B-02: API client and backend communication
+- [ ] 2B-01-PLAN.md — Frame selection and comprehensive design data extraction
+- [ ] 2B-02-PLAN.md — API client and backend communication with results display
 
 ---
 
@@ -140,7 +140,7 @@ Phase 1 (all) -> Phase 2A/2B/2C (parallel) -> Phase 3 -> Phase 4
 |-------|----------------|--------|-----------|
 | 1. Setup | 2/2 | Complete ✓ | 2026-01-21 |
 | 2A. Backend | 0/2 | Planned | - |
-| 2B. Plugin | 0/2 | Not started | - |
+| 2B. Plugin | 0/2 | Planned | - |
 | 2C. Assets | 0/2 | Not started | - |
 | 3. Integration | 0/2 | Not started | - |
 | 4. Demo | 0/2 | Not started | - |
