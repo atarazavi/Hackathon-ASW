@@ -48,13 +48,13 @@ Plans:
   2. Endpoint returns structured findings JSON with severity and recommendations
   3. Azure OpenAI analyzes for states, a11y, design system, responsiveness
   4. Agent uses guidelines document for reference during analysis
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Team**: Full-stack developer
 
 Plans:
-- [ ] 2A-01: API endpoint and Azure OpenAI integration
-- [ ] 2A-02: Analysis agent prompts and finding structure
+- [ ] 2A-01-PLAN.md — Pydantic models, endpoint skeleton, AsyncAzureOpenAI lifespan
+- [ ] 2A-02-PLAN.md — Analyzer service with Azure OpenAI structured outputs
 
 ---
 
@@ -139,7 +139,7 @@ Phase 1 (all) -> Phase 2A/2B/2C (parallel) -> Phase 3 -> Phase 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Setup | 2/2 | Complete ✓ | 2026-01-21 |
-| 2A. Backend | 0/2 | Not started | - |
+| 2A. Backend | 0/2 | Planned | - |
 | 2B. Plugin | 0/2 | Not started | - |
 | 2C. Assets | 0/2 | Not started | - |
 | 3. Integration | 0/2 | Not started | - |
