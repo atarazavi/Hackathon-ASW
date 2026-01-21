@@ -84,13 +84,13 @@ Plans:
   1. GUIDELINES.md exists with design standards for agent reference
   2. Sample Figma design exists with intentional issues (missing states, a11y gaps, etc.)
   3. Test designs cover all four analysis categories
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Team**: Designers 1 and 2
 
 Plans:
-- [ ] 2C-01: Guidelines document
-- [ ] 2C-02: Test designs with intentional issues
+- [ ] 2C-01-PLAN.md — GUIDELINES.md design standards document for AI analyzer
+- [ ] 2C-02-PLAN.md — Test Figma designs with intentional issues in all four categories
 
 ---
 
@@ -141,7 +141,7 @@ Phase 1 (all) -> Phase 2A/2B/2C (parallel) -> Phase 3 -> Phase 4
 | 1. Setup | 2/2 | Complete ✓ | 2026-01-21 |
 | 2A. Backend | 0/2 | Planned | - |
 | 2B. Plugin | 0/2 | Planned | - |
-| 2C. Assets | 0/2 | Not started | - |
+| 2C. Assets | 0/2 | Planned | - |
 | 3. Integration | 0/2 | Not started | - |
 | 4. Demo | 0/2 | Not started | - |
 
