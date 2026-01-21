@@ -322,6 +322,12 @@
       Generate at <a href="https://www.figma.com/developers/api#access-tokens" target="_blank">Figma Settings</a>. Required for saving comments.
     </div>
     <div id="tokenStatus" class="settings-status not-configured">Token not configured</div>
+    <div id="fileKeyStatus" class="settings-status" style="margin-top: 4px;"></div>
+    <div id="fileUrlSection" style="margin-top: 12px; display: none;">
+      <label for="fileUrl">File URL (fallback)</label>
+      <input type="text" id="fileUrl" placeholder="https://www.figma.com/design/ABC123/...">
+      <div class="settings-hint">Paste the Figma file URL if file key detection fails.</div>
+    </div>
   </div>
   <button id="analyze">Review Selection</button>
   <div id="result">
@@ -335,8 +341,42 @@
     const settingsPanel = document.getElementById('settingsPanel');
     const figmaTokenInput = document.getElementById('figmaToken');
     const tokenStatus = document.getElementById('tokenStatus');
+    const fileKeyStatus = document.getElementById('fileKeyStatus');
+    const fileUrlSection = document.getElementById('fileUrlSection');
+    const fileUrlInput = document.getElementById('fileUrl');
 
     const BACKEND_URL = 'http://localhost:8000';
+
+    // Parse file key from Figma URL
+    function parseFileKeyFromUrl(url) {
+      // Matches: figma.com/file/KEY, figma.com/design/KEY, figma.com/proto/KEY, etc.
+      const match = url.match(/figma\.com\/(?:file|design|proto|board)\/([a-zA-Z0-9]+)/);
+      return match ? match[1] : null;
+    }
+
+    function updateFileKeyStatus() {
+      if (currentFileKey) {
+        fileKeyStatus.className = 'settings-status configured';
+        fileKeyStatus.textContent = 'File key: available';
+        fileUrlSection.style.display = 'none';
+      } else {
+        fileKeyStatus.className = 'settings-status not-configured';
+        fileKeyStatus.textContent = 'File key: not available (paste URL below)';
+        fileUrlSection.style.display = 'block';
+      }
+    }
+
+    // Handle file URL input
+    fileUrlInput.addEventListener('input', () => {
+      const url = fileUrlInput.value.trim();
+      const parsedKey = parseFileKeyFromUrl(url);
+      if (parsedKey) {
+        currentFileKey = parsedKey;
+        fileKeyStatus.className = 'settings-status configured';
+        fileKeyStatus.textContent = 'File key: extracted from URL';
+        updateCommentButtonStates();
+      }
+    });
 
     // Store fileKey and frame data from the last analysis
     let currentFileKey = null;
@@ -363,8 +403,38 @@
         setTimeout(() => {
           settingsPanel.classList.remove('visible');
         }, 500);
+        // Re-enable buttons if results are displayed
+        updateCommentButtonStates();
       }
     });
+
+    // Update button states based on current token/fileKey
+    function updateCommentButtonStates() {
+      const hasToken = !!getFigmaToken();
+      const hasFileKey = !!currentFileKey;
+
+      document.querySelectorAll('.save-comment-btn').forEach(btn => {
+        const findingIndex = parseInt(btn.dataset.findingIndex);
+        const finding = lastAnalysisResult?.findings?.[findingIndex];
+        const affectedFrames = finding?.affected_frames || [];
+        const canSave = hasToken && hasFileKey && affectedFrames.length > 0;
+
+        btn.disabled = !canSave;
+        btn.title = !hasToken ? 'Configure Figma token in Settings' :
+                    !hasFileKey ? 'File key unavailable - see Settings' :
+                    affectedFrames.length === 0 ? 'No affected frames' :
+                    'Save finding as Figma comment';
+      });
+
+      const saveAllBtn = document.getElementById('saveAllBtn');
+      if (saveAllBtn) {
+        const canSaveAll = hasToken && hasFileKey && currentFrames.length > 0;
+        saveAllBtn.disabled = !canSaveAll;
+        saveAllBtn.title = !hasToken ? 'Configure Figma token in Settings' :
+                          !hasFileKey ? 'File key unavailable - see Settings' :
+                          'Save all findings as a single comment';
+      }
+    }
 
     function updateTokenStatus(configured) {
       if (configured) {
@@ -397,6 +467,11 @@
       // Store fileKey and frames for comment creation
       currentFileKey = designData.fileKey;
       currentFrames = designData.frames || [];
+
+      // Debug logging
+      console.log('[Design Review] fileKey:', currentFileKey);
+      console.log('[Design Review] frames count:', currentFrames.length);
+      updateFileKeyStatus();
 
       resultDiv.innerHTML = `
         <div class="loading-box">

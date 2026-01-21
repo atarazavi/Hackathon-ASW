@@ -124,6 +124,8 @@ figma.ui.onmessage = async (msg) => {
         }
         // Extract design data from all selected frames
         const frames = frameNodes.map(extractFrame);
+        // Debug: log fileKey availability
+        console.log('[Design Review] figma.fileKey:', figma.fileKey);
         figma.ui.postMessage({
             type: 'design-data',
             data: {
