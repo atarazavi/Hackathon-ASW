@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      padding: 16px;
+      margin: 0;
+    }
+    h3 {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 4px 0;
+      cursor: pointer;
+      background: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      width: 100%;
+    }
+    button:hover {
+      background: #0D8DE8;
+    }
+    #result {
+      margin-top: 16px;
+      padding: 12px;
+      background: #F5F5F5;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    .error {
+      color: #F24822;
+    }
+  </style>
+</head>
+<body>
+  <h3>Design Review AI</h3>
+  <button id="analyze">Review Selection</button>
+  <div id="result">Select frames and click "Review Selection" to analyze.</div>
+
+  <script>
+    const resultDiv = document.getElementById('result');
+
+    document.getElementById('analyze').onclick = () => {
+      resultDiv.textContent = 'Getting selection...';
+      parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
+    };
+
+    window.onmessage = async (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'selection-data') {
+        // For now, just display selection info
+        // Phase 2B will add backend API call
+        resultDiv.textContent = 'Selected frames:\n' + JSON.stringify(msg.data, null, 2);
+      }
+
+      if (msg.type === 'error') {
+        resultDiv.innerHTML = '<span class="error">Error: ' + msg.message + '</span>';
+      }
+    };
+  </script>
+</body>
+</html>

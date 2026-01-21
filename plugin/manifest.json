@@ -1,0 +1,13 @@
+{
+  "name": "Design Review AI",
+  "id": "000000000000000000",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["http://localhost:8000"],
+    "reasoning": "Connect to local Python backend for AI design review",
+    "devAllowedDomains": ["http://localhost:*", "http://127.0.0.1:*"]
+  }
+}
