@@ -1,5 +1,5 @@
 // Design Review AI - Main plugin code (sandbox)
-figma.showUI(__html__, { width: 400, height: 300 });
+figma.showUI(__html__, { width: 400, height: 500 });
 
 // Type definitions for extracted design data
 interface ExtractedFrame {
@@ -147,20 +147,40 @@ function extractFrame(node: SceneNode): ExtractedFrame {
 figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
   if (msg.type === 'get-selection') {
     const selection = figma.currentPage.selection;
+
     if (selection.length === 0) {
-      figma.ui.postMessage({ type: 'error', message: 'No frames selected. Please select one or more frames.' });
+      figma.ui.postMessage({
+        type: 'error',
+        message: 'No frames selected. Please select one or more frames.'
+      });
       return;
     }
 
-    // Extract basic info from selection (Phase 2B will expand this)
-    const data = selection.map(node => ({
-      name: node.name,
-      type: node.type,
-      width: 'width' in node ? node.width : 0,
-      height: 'height' in node ? node.height : 0,
-    }));
+    // Filter to only frames/components/instances (not individual shapes)
+    const frameNodes = selection.filter(
+      node => node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE'
+    );
 
-    figma.ui.postMessage({ type: 'selection-data', data });
+    if (frameNodes.length === 0) {
+      figma.ui.postMessage({
+        type: 'error',
+        message: 'Please select frames, components, or instances (not individual shapes).'
+      });
+      return;
+    }
+
+    // Extract design data from all selected frames
+    const frames = frameNodes.map(extractFrame);
+
+    figma.ui.postMessage({
+      type: 'design-data',
+      data: { frames }
+    });
+  }
+
+  if (msg.type === 'analysis-complete') {
+    const findingCount = msg.data?.findingCount ?? 0;
+    figma.notify(`Analysis complete: ${findingCount} finding(s)`);
   }
 
   if (msg.type === 'close') {
