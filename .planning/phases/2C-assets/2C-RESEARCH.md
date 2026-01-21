@@ -6,44 +6,50 @@
 
 ## Summary
 
-This phase creates demo materials for the Frontend Design Reviewer: a GUIDELINES.md document that the AI agent uses as reference standards, and sample Figma designs with intentional issues that trigger findings across all four analysis categories (missing states, accessibility, design system, responsiveness).
+Phase 2C creates two demo assets for the Frontend Design Reviewer: (1) a GUIDELINES.md document that the AI agent uses as reference standards, and (2) sample Figma designs with intentional issues that demonstrate the tool's capabilities across all four analysis categories.
 
-The core insight is that GUIDELINES.md serves dual purposes: (1) it defines the "rules" the AI compares against, and (2) it provides context for generating actionable recommendations. The document should be structured as a checklist-style reference with specific, measurable criteria rather than prose. This makes LLM analysis more reliable and findings more actionable.
+GUIDELINES.md is critical infrastructure - the backend analyzer service loads it at `backend/guidelines/GUIDELINES.md` and includes it in the LLM prompt context. The document structure directly impacts analysis quality: checklist-style, measurable criteria outperform prose descriptions for LLM parsing. The user has indicated they want to customize this file with company-specific rules, so the template must include clear extension points.
 
-For test designs, the strategy is to create a small component (e.g., a button or card) with deliberate violations that demonstrate the tool's capabilities. Each violation should be obvious enough to be caught reliably, covering all four categories the agent analyzes.
+For test designs, the strategy is creating simple components (button, card, form) with deliberate violations in each of the four categories: missing states, accessibility gaps, design system violations, and responsiveness issues. Each violation should be obvious enough to be caught reliably while demonstrating the tool's value.
 
-**Primary recommendation:** Structure GUIDELINES.md with clear sections for each analysis category, using specific values (e.g., "4.5:1 contrast ratio", "44x44px touch target") that the AI can directly compare against extracted design data. Create test designs with at least one intentional issue per analysis category.
+**Primary recommendation:** Structure GUIDELINES.md with clear sections mapping to the four analysis categories, using specific measurable values (e.g., "4.5:1 contrast ratio", "44x44px touch target", "8px spacing grid") that the AI can directly compare against extracted design data. Create test designs with at least 2-3 intentional issues per analysis category.
 
 ## Standard Stack
 
-This phase is documentation and design work - no code dependencies.
+This phase produces documentation and design assets - no code dependencies.
 
 ### Deliverables
 
-| Asset | Format | Purpose | Consumed By |
-|-------|--------|---------|-------------|
-| GUIDELINES.md | Markdown | Design standards for agent reference | Backend analyzer service |
-| Test Figma Design | Figma file | Demo designs with intentional issues | Plugin testing, demo presentation |
+| Asset | Format | Location | Consumed By |
+|-------|--------|----------|-------------|
+| GUIDELINES.md | Markdown | `backend/guidelines/GUIDELINES.md` | Backend analyzer service (via file read) |
+| Test Figma Design | Figma file | Figma (cloud) | Plugin testing, demo presentation |
 
-### File Location
+### Integration with Backend
 
-Based on Phase 2A research, the backend expects guidelines at:
+Based on Phase 2A research and plans, the analyzer service loads guidelines like this:
+
+```python
+# backend/app/services/analyzer.py
+GUIDELINES_PATH = Path(__file__).parent.parent.parent / "guidelines" / "GUIDELINES.md"
+
+# In analyze_design():
+guidelines = ""
+if GUIDELINES_PATH.exists():
+    guidelines = GUIDELINES_PATH.read_text()
+
+# Override with request guidelines if provided
+if design_data.guidelines:
+    guidelines = design_data.guidelines
 ```
-backend/guidelines/GUIDELINES.md
-```
 
-The analyzer service loads this file and includes it in the LLM prompt context. This path is configurable - the plugin can also send custom guidelines in the request payload.
+The plugin can also send custom guidelines in the request payload, but the default file path is `backend/guidelines/GUIDELINES.md`.
 
 ## Architecture Patterns
 
 ### GUIDELINES.md Structure
 
-Based on research into design system documentation best practices, the guidelines document should be structured for LLM consumption, not human reading. Key principles:
-
-1. **Checklist-style, not prose** - Specific criteria the AI can check
-2. **Measurable values** - Numbers, not descriptions ("4.5:1" not "good contrast")
-3. **Organized by analysis category** - Matches the four agent detection categories
-4. **Examples of violations** - Helps AI recognize patterns
+The document must be optimized for LLM consumption. Research shows that checklist-style formats with specific values produce more reliable AI analysis than prose.
 
 **Recommended structure:**
 
@@ -51,22 +57,26 @@ Based on research into design system documentation best practices, the guideline
 # Design Guidelines
 
 ## UI States
-[Required states for interactive elements]
+[Required states for interactive elements with visual treatment specs]
 
 ## Accessibility
-[WCAG requirements and thresholds]
+[WCAG 2.1 AA thresholds with specific ratios and sizes]
 
 ## Design Tokens
-[Color, spacing, typography values]
+[Color, spacing, typography values in tables]
 
 ## Responsiveness
-[Breakpoint requirements]
+[Breakpoint requirements with layout expectations]
+
+## Custom Rules
+[Placeholder for company-specific additions]
 ```
 
 ### Pattern 1: Checklist-Style Guidelines
 
 **What:** Structure each section as checkable criteria, not descriptive prose.
 **When to use:** Always - LLMs perform better with specific, enumerable requirements.
+**Why:** The AI can systematically check each item; vague prose leads to vague findings.
 
 ```markdown
 ## UI States
@@ -74,91 +84,116 @@ Based on research into design system documentation best practices, the guideline
 Interactive elements MUST have the following states:
 
 ### Required States (all interactive elements)
-- [ ] Default/Enabled - Normal state
-- [ ] Hover - Mouse-over feedback (150-200ms delay)
-- [ ] Focus - Keyboard navigation indicator (visible outline)
-- [ ] Pressed/Active - Click/tap feedback (within 100-150ms)
-- [ ] Disabled - Unavailable state (50% opacity, ARIA-disabled)
+| State | Required | Visual Treatment | Timing |
+|-------|----------|------------------|--------|
+| Default | Yes | Full opacity, brand colors | - |
+| Hover | Yes | Darken/lighten 10-20% | 150-200ms delay |
+| Focus | Yes | 2px outline, 3:1 contrast | 100-150ms |
+| Pressed | Yes | Darken 20-30% | Immediate |
+| Disabled | Yes | 50% opacity, ARIA-disabled | - |
 
-### Conditional States (context-dependent)
-- [ ] Loading - In-progress indicator (for async actions)
-- [ ] Error - Validation failure state
-- [ ] Empty - No content state (for containers/lists)
-- [ ] Selected - Toggle/checkbox states
+### Conditional States
+| State | When Required | Visual Treatment |
+|-------|---------------|------------------|
+| Loading | Async actions | Spinner or skeleton |
+| Error | Form validation | Red border + message |
+| Empty | Lists/containers | Illustration + CTA |
+| Selected | Toggles/checkboxes | Filled indicator |
 ```
 
 ### Pattern 2: Measurable Accessibility Thresholds
 
 **What:** Specify exact WCAG values for each accessibility check.
 **When to use:** Always - vague guidance produces vague findings.
+**Source:** WCAG 2.1 Level AA requirements.
 
 ```markdown
 ## Accessibility
 
-### Color Contrast (WCAG 2.1 AA)
-- Normal text (<18px or <14px bold): 4.5:1 minimum ratio
-- Large text (>=18px or >=14px bold): 3:1 minimum ratio
-- Non-text elements (icons, focus indicators): 3:1 minimum ratio
+### Color Contrast (WCAG 2.1 AA - SC 1.4.3)
+| Element Type | Minimum Ratio | Notes |
+|--------------|---------------|-------|
+| Normal text (<18px or <14px bold) | 4.5:1 | 4.49:1 FAILS |
+| Large text (>=18px or >=14px bold) | 3:1 | ~24px CSS or 19px bold |
+| Non-text (icons, focus indicators) | 3:1 | SC 1.4.11 |
 
-### Touch Targets
-- Minimum size: 44x44 CSS pixels (48x48 recommended)
-- Minimum spacing between targets: 8px
+### Touch Targets (WCAG 2.2)
+| Level | Minimum Size | Notes |
+|-------|--------------|-------|
+| AA (SC 2.5.8) | 24x24 CSS pixels | Minimum requirement |
+| Best practice | 44x44 CSS pixels | Recommended for all platforms |
+| Mobile apps | 48x48 CSS pixels | Android Material guideline |
 
 ### Focus Indicators
-- Visible outline: 2px solid minimum
-- Contrast against background: 3:1 minimum ratio
-- Must be distinct from hover state
+- Outline width: 2px minimum
+- Outline contrast: 3:1 against background
+- Must be visually distinct from hover state
+- Must be visible on ALL focusable elements
 ```
 
 ### Pattern 3: Semantic Token Definitions
 
-**What:** Define design tokens with semantic names and values.
+**What:** Define design tokens with semantic names, specific values, and usage context.
 **When to use:** For design system violation detection.
+**Format:** Tables for easy AI parsing.
 
 ```markdown
 ## Design Tokens
 
 ### Colors
-| Token | Value | Usage |
-|-------|-------|-------|
+| Token Name | Hex Value | Usage |
+|------------|-----------|-------|
 | primary | #0066CC | Primary actions, links |
-| primary-hover | #0052A3 | Primary hover state |
+| primary-hover | #0052A3 | Primary button hover |
 | error | #D32F2F | Error states, validation |
-| text-primary | #212121 | Main text |
-| text-secondary | #757575 | Secondary text |
+| text-primary | #212121 | Main body text |
+| text-secondary | #757575 | Secondary text, captions |
 | background | #FFFFFF | Page background |
 
-### Spacing Scale
+### Spacing Scale (4px base)
 | Token | Value | Usage |
 |-------|-------|-------|
-| spacing-xs | 4px | Tight spacing |
-| spacing-sm | 8px | Compact spacing |
+| spacing-xs | 4px | Icon gaps, tight padding |
+| spacing-sm | 8px | Compact element spacing |
 | spacing-md | 16px | Default spacing |
-| spacing-lg | 24px | Section spacing |
-| spacing-xl | 32px | Large sections |
+| spacing-lg | 24px | Section padding |
+| spacing-xl | 32px | Major section breaks |
+
+### Valid Spacing Values
+Only these spacing values are valid: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64px
+Any other value (e.g., 10px, 15px, 22px) is a design system violation.
 ```
 
 ### Pattern 4: Breakpoint Requirements
 
-**What:** Define expected breakpoints and what changes at each.
+**What:** Define expected breakpoints with layout change expectations.
 **When to use:** For responsiveness gap detection.
+**Source:** Common 2026 breakpoint conventions.
 
 ```markdown
 ## Responsiveness
 
 ### Required Breakpoints
-| Breakpoint | Width | Layout Changes |
-|------------|-------|----------------|
-| Mobile | 320px | Single column, stacked navigation |
-| Tablet | 768px | Two columns, collapsed sidebar |
-| Desktop | 1024px | Full layout, horizontal navigation |
-| Large Desktop | 1440px | Maximum content width |
+| Breakpoint | Width Range | Required For |
+|------------|-------------|--------------|
+| Mobile | 320px - 479px | All layouts |
+| Mobile Large | 480px - 767px | Complex layouts |
+| Tablet | 768px - 1023px | All layouts |
+| Desktop | 1024px - 1439px | All layouts |
+| Large Desktop | 1440px+ | Optional |
 
-### Detection Heuristics
-When multiple frames are selected:
-- Similar names with size suffixes (e.g., "Card-mobile", "Card-desktop") indicate responsive variants
-- Different widths (320, 768, 1024, 1440) suggest breakpoint coverage
-- Missing intermediate size triggers "responsiveness gap" finding
+### Responsive Detection
+The agent detects responsive intent when:
+- Multiple frames have similar names with size indicators (e.g., "Card-mobile", "Card-desktop")
+- Multiple frames have different widths suggesting breakpoints
+- Frame widths match common breakpoints (320, 375, 768, 1024, 1440)
+
+### Layout Expectations by Breakpoint
+| Element | Mobile (<768px) | Desktop (>=1024px) |
+|---------|-----------------|---------------------|
+| Navigation | Hamburger menu | Horizontal nav |
+| Columns | 1 column | 2-4 columns |
+| Touch targets | 48px minimum | 44px minimum |
 ```
 
 ### Anti-Patterns to Avoid
@@ -168,17 +203,20 @@ When multiple frames are selected:
 - **Missing thresholds:** "Elements should be accessible" without specific criteria
 - **Generic recommendations:** "Follow best practices" without defining them
 - **Inconsistent formatting:** Mixing styles makes AI parsing unreliable
+- **Orphan rules:** Rules without clear categories don't map to finding types
 
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
 | Accessibility standards | Custom rules | WCAG 2.1 AA thresholds | Industry standard, well-documented |
-| UI state lists | Ad-hoc enumeration | Material Design / NN/g state lists | Comprehensive, research-backed |
-| Breakpoint values | Random widths | Bootstrap/Tailwind standard breakpoints | Match common device sizes |
-| Contrast requirements | Guessed ratios | WCAG 2.1 specific ratios (4.5:1, 3:1) | Legal compliance standard |
+| UI state lists | Ad-hoc enumeration | NN/g five core states | Research-backed, comprehensive |
+| Breakpoint values | Random widths | Standard breakpoints (320, 768, 1024, 1440) | Match real device sizes |
+| Contrast requirements | Guessed ratios | WCAG specific ratios (4.5:1, 3:1) | Legal compliance standard |
+| Touch target sizes | Arbitrary minimums | WCAG 2.2 (24px AA, 44px AAA) | Accessibility compliance |
+| Spacing scale | Random values | 4px/8px base grid | Industry convention |
 
-**Key insight:** Design guidelines are not novel - they codify established standards. Use authoritative sources (WCAG, Material Design, established design systems) rather than inventing rules.
+**Key insight:** Design guidelines codify established standards. Use authoritative sources (WCAG, Material Design, NN/g) rather than inventing rules.
 
 ## Common Pitfalls
 
@@ -186,7 +224,7 @@ When multiple frames are selected:
 
 **What goes wrong:** AI returns generic findings like "consider improving contrast" without specifics.
 **Why it happens:** Guidelines use prose descriptions instead of measurable criteria.
-**How to avoid:** Use specific values (4.5:1 not "good contrast"), checklists not paragraphs.
+**How to avoid:** Use specific values (4.5:1 not "good contrast"), tables not paragraphs.
 **Warning signs:** AI findings that could apply to any design, lacking specificity.
 
 ### Pitfall 2: Test Designs Too Perfect
@@ -200,7 +238,7 @@ When multiple frames are selected:
 
 **What goes wrong:** Demo only shows accessibility findings, not all four categories.
 **Why it happens:** Easier to think of one type of violation.
-**How to avoid:** Create test design matrix with at least one issue per category.
+**How to avoid:** Create test design matrix with at least 2 issues per category.
 **Warning signs:** Demo only exercises one or two agent capabilities.
 
 ### Pitfall 4: Guidelines Don't Match Analysis Categories
@@ -213,9 +251,16 @@ When multiple frames are selected:
 ### Pitfall 5: Company Customization Breaks Format
 
 **What goes wrong:** User customizes GUIDELINES.md and LLM can't parse it.
-**Why it happens:** No clear structure for user additions.
-**How to avoid:** Provide clear section markers and "add your rules here" placeholders.
+**Why it happens:** No clear structure or guidance for user additions.
+**How to avoid:** Provide clear section markers, "add your rules here" placeholders, and format examples.
 **Warning signs:** After user edits, AI returns parsing errors or misses custom rules.
+
+### Pitfall 6: Inconsistent Units Between Guidelines and Plugin
+
+**What goes wrong:** Guidelines say "44px" but plugin extracts values in different units.
+**Why it happens:** Figma uses different measurement systems (points, CSS pixels).
+**How to avoid:** Use CSS pixels consistently - Figma dimensions are already in CSS pixel equivalents.
+**Warning signs:** Size comparisons don't match expected thresholds.
 
 ## Test Design Strategy
 
@@ -225,48 +270,53 @@ Create test designs that trigger findings in all four categories:
 
 | Category | Intentional Issue | Expected Finding |
 |----------|-------------------|------------------|
-| MISSING_STATES | Button with no hover/disabled state | "Missing hover state on Button" |
-| MISSING_STATES | Form without loading state | "No loading indicator for async action" |
-| ACCESSIBILITY | Light gray text on white (#999 on #FFF) | "Contrast ratio 2.8:1 below 4.5:1 requirement" |
-| ACCESSIBILITY | 30x30px touch target | "Touch target below 44x44px minimum" |
-| DESIGN_SYSTEM | Using #0055BB instead of token #0066CC | "Color #0055BB not in defined palette" |
-| DESIGN_SYSTEM | 12px spacing (not on scale) | "Spacing 12px not on scale (8px, 16px, 24px)" |
-| RESPONSIVENESS | Desktop frame only, no mobile | "Missing mobile breakpoint (320px)" |
+| MISSING_STATES | Button with only default state | "Missing hover, focus, disabled states" |
+| MISSING_STATES | Form submit without loading state | "No loading indicator for async action" |
+| MISSING_STATES | List without empty state | "Missing empty state for data list" |
+| ACCESSIBILITY | Light gray text #999 on white #FFF | "Contrast ratio 2.85:1 below 4.5:1" |
+| ACCESSIBILITY | 32x32px touch target | "Touch target below 44x44px minimum" |
+| ACCESSIBILITY | Input without visible label | "Form input missing associated label" |
+| DESIGN_SYSTEM | Color #0055BB instead of #0066CC | "Color not in defined palette" |
+| DESIGN_SYSTEM | 15px spacing (not on 8px grid) | "Spacing value not on design system scale" |
+| DESIGN_SYSTEM | 15px font size | "Typography not on type scale" |
+| RESPONSIVENESS | Desktop frame only (1440px) | "Missing mobile breakpoint" |
 | RESPONSIVENESS | 768px and 1440px, no 320px | "No mobile viewport under 480px" |
 
 ### Recommended Test Design Components
 
-For a hackathon demo, create these minimal test designs:
+For hackathon demo, create these minimal test designs:
 
-1. **Button Component** (states + accessibility)
-   - Missing: hover, focus, disabled states
-   - A11y: Low contrast text, small touch target
+**1. Button Component (states + accessibility)**
+- **Missing states:** Only "Default" variant exists (no hover, focus, pressed, disabled)
+- **A11y issues:** Light gray text (#999999), 36x36px size
+- **Frame name:** "Button-Default"
 
-2. **Card Component** (design system + responsiveness)
-   - DS: Off-scale spacing, non-token colors
-   - Responsive: Only desktop size, no mobile version
+**2. Card Component (design system + responsiveness)**
+- **DS violations:** 15px padding (not on scale), color #1177CC (not a token)
+- **Responsive issue:** Only 1024px width, no mobile variant
+- **Frame names:** "Card-Desktop" (no "Card-Mobile" counterpart)
 
-3. **Form Component** (all categories)
-   - States: Missing loading, error, empty states
-   - A11y: Missing labels, low contrast
-   - DS: Inconsistent spacing
-   - Responsive: Desktop only
+**3. Form Input (all categories)**
+- **Missing states:** No error state, no disabled state, no focus indicator
+- **A11y:** Label text too light, no focus visible
+- **DS:** Inconsistent border radius, off-scale margins
+- **Responsive:** Desktop width only
+- **Frame name:** "Input-Default"
 
 ### Figma File Organization
-
-Recommended structure for test designs:
 
 ```
 Test Designs (Figma File)
 ├── Page: Test Components
-│   ├── Frame: Button-Default (has issues)
-│   ├── Frame: Button-Fixed (reference)
-│   ├── Frame: Card-Desktop (missing mobile)
-│   └── Frame: Card-Mobile (fixed version)
-└── Page: Demo Flow
-    ├── Frame: Before (with issues)
-    └── Frame: After (fixed)
+│   ├── Frame: Button-Default (has issues - no other states)
+│   ├── Frame: Card-Desktop (missing mobile variant)
+│   └── Frame: Input-Default (multiple issues)
+└── Page: Reference (Optional)
+    ├── Frame: Button-AllStates (correct implementation)
+    └── Frame: Card-Mobile + Card-Desktop (proper responsive)
 ```
+
+**Note:** Test designs should be obviously flawed. The goal is demonstrating detection, not subtle edge cases.
 
 ## Code Examples
 
@@ -275,35 +325,38 @@ Test Designs (Figma File)
 ```markdown
 # Design Guidelines
 
-This document defines the design standards that the AI agent uses to review designs.
+This document defines design standards for the AI reviewer.
 Edit the values below to match your company's design system.
+
+---
 
 ## UI States
 
 Interactive elements MUST have the following states designed:
 
 ### Required States (All Interactive Elements)
-| State | Required | Visual Treatment |
-|-------|----------|------------------|
-| Default/Enabled | Yes | Full opacity, brand colors |
-| Hover | Yes | Darkened/lightened by 10-20% |
-| Focus | Yes | 2px outline, 3:1 contrast |
-| Pressed/Active | Yes | Darkened by 20-30% |
-| Disabled | Yes | 50% opacity, non-interactive cursor |
+| State | Required | Visual Treatment | Timing |
+|-------|----------|------------------|--------|
+| Default | Yes | Full opacity, brand colors | - |
+| Hover | Yes | Darken/lighten by 10-20% | 150-200ms delay |
+| Focus | Yes | 2px outline, 3:1 contrast | 100-150ms |
+| Pressed | Yes | Darken by 20-30% | Immediate |
+| Disabled | Yes | 50% opacity, ARIA-disabled | - |
 
 ### Conditional States
 | State | When Required | Visual Treatment |
 |-------|---------------|------------------|
-| Loading | Async actions | Spinner or skeleton |
-| Error | Form validation | Red border, error message |
-| Empty | Lists/containers | Illustration + call to action |
-| Selected | Toggles/checkboxes | Filled indicator |
+| Loading | Async actions (submit, fetch) | Spinner or skeleton |
+| Error | Form validation, API errors | Red border + error message |
+| Empty | Lists, tables, search results | Illustration + call to action |
+| Selected | Toggles, checkboxes, tabs | Filled indicator or highlight |
 
-**Examples of missing states:**
+### Examples of Missing States (what the AI should flag)
 - Button without hover effect
 - Input without error state
 - List without empty state
 - Toggle without selected state
+- Form submit without loading state
 
 ---
 
@@ -317,25 +370,27 @@ Interactive elements MUST have the following states designed:
 | Non-text (icons, borders, focus) | 3:1 |
 
 ### Touch Targets
-- Minimum size: 44 x 44 CSS pixels
-- Recommended size: 48 x 48 CSS pixels
+- Minimum size: 44 x 44 CSS pixels (best practice)
+- WCAG 2.2 AA minimum: 24 x 24 CSS pixels
+- Mobile recommended: 48 x 48 CSS pixels
 - Minimum spacing between targets: 8 pixels
 
 ### Focus Indicators
 - Outline width: 2px minimum
 - Outline contrast: 3:1 against background
 - Must be visible on all focusable elements
+- Must be visually distinct from hover state
 
 ### Labels and Alt Text
-- All inputs must have associated labels
+- All form inputs must have visible labels
 - All images must have alt text (or empty alt for decorative)
-- All icons must have aria-label if standalone
+- All icon-only buttons must have aria-label
 
-**Examples of accessibility gaps:**
-- Gray text (#999) on white background (2.8:1 ratio)
+### Examples of Accessibility Gaps (what the AI should flag)
+- Gray text (#999999) on white background (2.85:1 ratio - FAIL)
 - 32x32px button (below 44px minimum)
-- Focus state same as hover state
-- Input without label element
+- Focus state identical to hover state
+- Input with placeholder only, no label
 
 ---
 
@@ -346,28 +401,31 @@ Interactive elements MUST have the following states designed:
 | Token Name | Hex Value | Usage |
 |------------|-----------|-------|
 | primary | #0066CC | Primary actions, links |
-| primary-hover | #0052A3 | Primary button hover |
+| primary-hover | #0052A3 | Primary hover state |
 | secondary | #6C757D | Secondary actions |
 | error | #D32F2F | Error states, validation |
 | warning | #ED6C02 | Warning states |
 | success | #2E7D32 | Success states |
 | text-primary | #212121 | Main body text |
-| text-secondary | #757575 | Secondary text, captions |
+| text-secondary | #757575 | Secondary text |
 | background | #FFFFFF | Page background |
-| surface | #F5F5F5 | Card/elevated backgrounds |
+| surface | #F5F5F5 | Card backgrounds |
 
 ### Spacing Scale
 <!-- Edit these values to match your design system -->
 | Token | Value | Usage |
 |-------|-------|-------|
 | spacing-xs | 4px | Icon gaps, tight padding |
-| spacing-sm | 8px | Compact element spacing |
+| spacing-sm | 8px | Compact spacing |
 | spacing-md | 16px | Default spacing |
 | spacing-lg | 24px | Section padding |
-| spacing-xl | 32px | Major section breaks |
+| spacing-xl | 32px | Major sections |
 | spacing-xxl | 48px | Page-level spacing |
 
-### Typography
+**Valid spacing values:** 4, 8, 16, 24, 32, 48, 64px
+Any other value is a design system violation.
+
+### Typography Scale
 | Token | Size | Weight | Line Height |
 |-------|------|--------|-------------|
 | heading-1 | 32px | 700 | 1.2 |
@@ -378,126 +436,127 @@ Interactive elements MUST have the following states designed:
 | body-sm | 14px | 400 | 1.4 |
 | caption | 12px | 400 | 1.4 |
 
-### Border Radius
+### Border Radius Scale
 | Token | Value | Usage |
 |-------|-------|-------|
-| radius-none | 0px | Sharp corners |
 | radius-sm | 4px | Buttons, inputs |
 | radius-md | 8px | Cards, modals |
 | radius-lg | 16px | Large containers |
 | radius-full | 9999px | Pills, avatars |
 
-**Examples of design system violations:**
+### Examples of Design System Violations (what the AI should flag)
 - Using #0055BB instead of #0066CC (primary)
 - Using 12px spacing (not on 4/8/16/24 scale)
-- Using 15px font size (not on scale)
-- Using 6px border radius (not on scale)
+- Using 15px font size (not on typography scale)
+- Using 6px border radius (not on radius scale)
 
 ---
 
 ## Responsiveness
 
 ### Required Breakpoints
-| Breakpoint | Width | Required For |
-|------------|-------|--------------|
+| Breakpoint | Width Range | Required For |
+|------------|-------------|--------------|
 | Mobile | 320px - 479px | All layouts |
-| Mobile Large | 480px - 767px | Complex layouts |
 | Tablet | 768px - 1023px | All layouts |
-| Desktop | 1024px - 1439px | All layouts |
-| Large Desktop | 1440px+ | Optional |
+| Desktop | 1024px+ | All layouts |
 
-### Breakpoint Detection
-The agent detects responsive intent when:
-- Multiple frames have similar names with size indicators ("mobile", "tablet", "desktop")
-- Multiple frames have different widths suggesting breakpoints
-- Frame widths match common breakpoints (320, 768, 1024, 1440)
+### How the AI Detects Responsive Designs
+The agent looks for:
+- Multiple frames with similar names and size indicators ("Card-mobile", "Card-desktop")
+- Frame widths matching common breakpoints (320, 375, 768, 1024, 1440)
+- Missing size variants when responsive intent is detected
 
-### Layout Changes by Breakpoint
-| Element | Mobile | Tablet | Desktop |
-|---------|--------|--------|---------|
-| Navigation | Hamburger | Hamburger | Horizontal |
-| Columns | 1 | 2 | 3+ |
-| Sidebar | Hidden | Collapsed | Visible |
-| Touch targets | 48px | 44px | 44px |
+### Layout Expectations
+| Element | Mobile (<768px) | Desktop (>=1024px) |
+|---------|-----------------|---------------------|
+| Navigation | Hamburger/drawer | Horizontal |
+| Columns | 1 | 2-4 |
+| Touch targets | 48px | 44px |
 
-**Examples of responsiveness gaps:**
+### Examples of Responsiveness Gaps (what the AI should flag)
 - Desktop-only design (1440px) with no mobile variant
-- Missing tablet breakpoint when mobile and desktop exist
-- Component designed at 768px only (no mobile)
+- "Card-desktop" frame exists but no "Card-mobile"
+- Only 768px breakpoint, missing mobile (320px)
 
 ---
 
 ## Custom Rules
 
-<!-- Add your company-specific rules below -->
+<!-- ADD YOUR COMPANY-SPECIFIC RULES BELOW -->
 
-### [Your Category]
+### [Your Category Name]
 Add additional rules your team wants to enforce.
+
+Example format:
+| Rule | Requirement | Violation Example |
+|------|-------------|-------------------|
+| Brand color usage | Only use approved brand colors | Using #FF0000 instead of brand red |
 
 ---
 
 *Last updated: [DATE]*
-*Based on: WCAG 2.1 AA, Material Design guidelines, company design system v[X]*
+*Based on: WCAG 2.1 AA, NN/g research, [your design system name]*
 ```
 
 ## State of the Art
 
 | Old Approach | Current Approach | Impact |
 |--------------|------------------|--------|
-| Prose-based design specs | Checklist-based guidelines | LLMs extract requirements more reliably |
-| Manual design QA | AI-powered design review | Faster, consistent checking |
-| Fixed guidelines documents | Company-customizable templates | Reusable across organizations |
-| Single-device designs | Multi-breakpoint responsive | Expected standard for all new designs |
-| Contrast "looks fine" | WCAG ratio measurements | Objective, accessible compliance |
+| Prose-based design specs | Checklist + table guidelines | LLMs extract requirements reliably |
+| Manual design QA | AI-powered design review | Faster, consistent, scalable |
+| Fixed company guidelines | Customizable templates | Reusable across organizations |
+| Single-device mockups | Multi-breakpoint responsive | Standard expectation |
+| "Looks good" contrast | WCAG ratio measurements | Objective, legally compliant |
+| Arbitrary touch targets | WCAG 2.2 standards (24/44px) | Accessibility compliance |
 
-**Current best practice:** Design guidelines should be structured data (tables, checklists) rather than prose. This enables both human comprehension and machine parsing.
+**Key insight:** WCAG 2.2 (current) has updated touch target requirements: Level AA is 24x24px minimum, but 44x44px remains best practice and Level AAA requirement.
 
 ## Open Questions
 
-### 1. Guidelines File Format
+### 1. Guidelines File Format Evolution
 
-**What we know:** Backend loads GUIDELINES.md and includes in prompt.
-**What's unclear:** Optimal format for LLM parsing - pure markdown vs. structured YAML frontmatter.
-**Recommendation:** Start with markdown tables and lists. If AI struggles to parse, consider adding YAML metadata.
+**What we know:** Backend loads GUIDELINES.md as plain text into the LLM prompt.
+**What's unclear:** Whether YAML frontmatter or JSON sections would improve AI parsing.
+**Recommendation:** Start with pure markdown tables. If AI struggles, add structured metadata later. Keep it simple for hackathon.
 
 ### 2. Company Customization Workflow
 
 **What we know:** User wants to customize with company rules.
-**What's unclear:** How users will edit - direct file edit, plugin UI, or separate config?
-**Recommendation:** For hackathon, support direct file edit with clear section markers. Future: Plugin could send custom guidelines in request.
+**What's unclear:** How sophisticated the customization UI needs to be.
+**Recommendation:** For hackathon, support direct file editing with clear comments. Future: Plugin could have a guidelines editor panel.
 
-### 3. Token Extraction from Design Data
+### 3. Token Value Extraction from Plugin
 
-**What we know:** Plugin extracts colors, spacing from Figma.
-**What's unclear:** Exact format of extracted values (hex, rgba, px, rem).
-**Recommendation:** Guidelines should define tokens in same format plugin extracts (likely hex for colors, px for spacing).
+**What we know:** Plugin extracts colors as hex values, spacing as pixels.
+**What's unclear:** Exact precision of extracted values (rounding, etc.).
+**Recommendation:** Guidelines should use CSS pixel values to match Figma's coordinate system. Colors as hex (#RRGGBB).
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [NN/g Button States](https://www.nngroup.com/articles/button-states-communicate-interaction/) - Five core button states and visual treatments
-- [U.S. Web Design System Design Tokens](https://designsystem.digital.gov/design-tokens/) - Token categories and naming conventions
-- [WCAG 2.1 Level AA](https://wcag.dock.codes/documentation/wcag21aa/) - Official accessibility requirements
-- [WebAIM Contrast and Color](https://webaim.org/articles/contrast/) - WCAG contrast ratio specifics
+- [WCAG 2.1 Contrast Requirements](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) - Official W3C contrast specifications (4.5:1, 3:1)
+- [WCAG 2.2 Target Size Minimum](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) - Touch target requirements (24x24px AA, 44x44px AAA)
+- [NN/g Button States](https://www.nngroup.com/articles/button-states-communicate-interaction/) - Five core button states: enabled, disabled, hover, focus, pressed
 
 ### Secondary (MEDIUM confidence)
 - [UXPin Design System Documentation](https://www.uxpin.com/studio/blog/design-system-documentation-guide/) - Documentation structure best practices
-- [BrowserStack Responsive Breakpoints](https://www.browserstack.com/guide/responsive-design-breakpoints) - Standard breakpoint values
-- [Supernova Accessibility in Design Systems](https://www.supernova.io/blog/accessibility-in-design-systems-a-comprehensive-approach-through-documentation-and-assets) - A11y documentation patterns
-- [LogRocket Button States](https://blog.logrocket.com/ux-design/designing-button-states/) - Interaction state design patterns
+- [BrowserStack Responsive Breakpoints](https://www.browserstack.com/guide/responsive-design-breakpoints) - 2026 breakpoint conventions
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) - Contrast ratio verification
+- [LogRocket Button States](https://blog.logrocket.com/ux-design/designing-button-states/) - Comprehensive state design patterns
 
 ### Tertiary (LOW confidence)
-- [Figma Design QA Checklist Community File](https://www.figma.com/community/file/1487501775359145058/design-qa-checklist) - Community template (unable to verify specific contents)
-- [Medium Design Tokens Articles](https://medium.com/@wicar/streamlining-your-design-system-a-guide-to-tokens-and-naming-conventions-3e4553aa8821) - Token naming conventions
+- [Figma Design QA Checklist](https://www.figma.com/community/file/1487501775359145058/design-qa-checklist) - Community template (general reference)
 
 ## Metadata
 
 **Confidence breakdown:**
-- Guidelines structure: HIGH - based on authoritative WCAG, NN/g, USWDS sources
-- Accessibility thresholds: HIGH - WCAG 2.1 AA is definitive standard
-- UI states list: HIGH - NN/g and Material Design are authoritative
-- Test design strategy: MEDIUM - logical approach, needs validation during implementation
-- Breakpoint values: MEDIUM - industry conventions but no single standard
+- Guidelines structure: HIGH - based on WCAG, NN/g authoritative sources
+- Accessibility thresholds: HIGH - WCAG 2.1/2.2 is definitive standard
+- UI states list: HIGH - NN/g research is authoritative
+- Design token format: HIGH - follows established conventions
+- Test design strategy: MEDIUM - logical approach, needs validation during demo
+- Breakpoint values: MEDIUM - industry conventions, no single standard
 
 **Research date:** 2026-01-21
-**Valid until:** 2026-04-21 (90 days - stable domain, guidelines don't change frequently)
+**Valid until:** 2026-04-21 (90 days - stable domain, standards don't change frequently)
