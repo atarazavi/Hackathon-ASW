@@ -1,6 +1,51 @@
 // Design Review AI - Main plugin code (sandbox)
 figma.showUI(__html__, { width: 400, height: 300 });
 
+// Type definitions for extracted design data
+interface ExtractedFrame {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  layers: ExtractedLayer[];
+}
+
+interface ExtractedLayer {
+  id: string;
+  name: string;
+  type: string;
+  visible: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  opacity: number;
+  fills: ExtractedFill[];
+  strokes: ExtractedStroke[];
+  children: ExtractedLayer[];
+  text?: ExtractedText;
+}
+
+interface ExtractedFill {
+  type: string;
+  color?: string;  // hex format #RRGGBB
+  opacity: number;
+}
+
+interface ExtractedStroke {
+  type: string;
+  color?: string;
+  weight: number;
+}
+
+interface ExtractedText {
+  content: string;
+  fontSize: number | 'mixed';
+  fontFamily: string | 'mixed';
+  fontStyle: string | 'mixed';
+  fillColor?: string;
+}
+
 figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
   if (msg.type === 'get-selection') {
     const selection = figma.currentPage.selection;
