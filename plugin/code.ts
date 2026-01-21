@@ -145,6 +145,19 @@ function extractFrame(node: SceneNode): ExtractedFrame {
 }
 
 figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
+  // Handle token storage
+  if (msg.type === 'save-token') {
+    await figma.clientStorage.setAsync('figma_pat', msg.data.token);
+    figma.ui.postMessage({ type: 'token-saved' });
+    return;
+  }
+
+  if (msg.type === 'load-token') {
+    const token = await figma.clientStorage.getAsync('figma_pat');
+    figma.ui.postMessage({ type: 'token-loaded', data: { token: token || '' } });
+    return;
+  }
+
   if (msg.type === 'get-selection') {
     const selection = figma.currentPage.selection;
 
@@ -174,7 +187,10 @@ figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
 
     figma.ui.postMessage({
       type: 'design-data',
-      data: { frames }
+      data: {
+        frames,
+        fileKey: figma.fileKey
+      }
     });
   }
 

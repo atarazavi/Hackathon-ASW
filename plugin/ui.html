@@ -188,10 +188,141 @@
       color: #666;
       font-size: 13px;
     }
+    /* Settings styles */
+    .settings-toggle {
+      background: transparent;
+      color: #666;
+      font-size: 12px;
+      padding: 6px 10px;
+      width: auto;
+      margin-bottom: 12px;
+    }
+    .settings-toggle:hover {
+      background: #F5F5F5;
+      color: #333;
+    }
+    .settings-panel {
+      background: #F5F5F5;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .settings-panel.visible {
+      display: block;
+    }
+    .settings-panel label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .settings-panel input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E0E0E0;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .settings-panel input:focus {
+      outline: none;
+      border-color: #18A0FB;
+    }
+    .settings-hint {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .settings-hint a {
+      color: #18A0FB;
+    }
+    .settings-status {
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    .settings-status.configured {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    .settings-status.not-configured {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+    /* Save as comment button */
+    .save-comment-btn {
+      background: transparent;
+      border: 1px solid #18A0FB;
+      color: #18A0FB;
+      font-size: 11px;
+      padding: 6px 12px;
+      width: auto;
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+    .save-comment-btn:hover {
+      background: #E3F2FD;
+    }
+    .save-comment-btn:disabled {
+      border-color: #B3B3B3;
+      color: #B3B3B3;
+      background: transparent;
+    }
+    .save-comment-btn.saving {
+      color: #888;
+      border-color: #888;
+    }
+    .save-comment-btn.saved {
+      background: #E8F5E9;
+      border-color: #4CAF50;
+      color: #2E7D32;
+    }
+    .affected-frames {
+      font-size: 11px;
+      color: #666;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #E5E5E5;
+    }
+    /* Save All button */
+    .save-all-btn {
+      background: #18A0FB;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 16px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    .save-all-btn:hover {
+      background: #0D8DE8;
+    }
+    .save-all-btn:disabled {
+      background: #B3B3B3;
+      cursor: not-allowed;
+    }
+    .save-all-btn.saved {
+      background: #4CAF50;
+    }
   </style>
 </head>
 <body>
   <h3>Design Review AI</h3>
+  <button id="settingsToggle" class="settings-toggle">Settings</button>
+  <div id="settingsPanel" class="settings-panel">
+    <label for="figmaToken">Figma Personal Access Token</label>
+    <input type="password" id="figmaToken" placeholder="figd_xxxxxxxx...">
+    <div class="settings-hint">
+      Generate at <a href="https://www.figma.com/developers/api#access-tokens" target="_blank">Figma Settings</a>. Required for saving comments.
+    </div>
+    <div id="tokenStatus" class="settings-status not-configured">Token not configured</div>
+  </div>
   <button id="analyze">Review Selection</button>
   <div id="result">
     <div class="initial-state">Select frames and click "Review Selection" to analyze your design.</div>
@@ -200,8 +331,54 @@
   <script>
     const resultDiv = document.getElementById('result');
     const analyzeBtn = document.getElementById('analyze');
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const figmaTokenInput = document.getElementById('figmaToken');
+    const tokenStatus = document.getElementById('tokenStatus');
 
     const BACKEND_URL = 'http://localhost:8000';
+
+    // Store fileKey and frame data from the last analysis
+    let currentFileKey = null;
+    let currentFrames = [];
+    let lastAnalysisResult = null;
+    let cachedToken = '';
+
+    // Settings toggle
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.classList.toggle('visible');
+    });
+
+    // Load saved token on startup (via sandbox)
+    parent.postMessage({ pluginMessage: { type: 'load-token' } }, '*');
+
+    // Save token on input (via sandbox)
+    figmaTokenInput.addEventListener('input', () => {
+      const token = figmaTokenInput.value.trim();
+      cachedToken = token;
+      parent.postMessage({ pluginMessage: { type: 'save-token', data: { token } } }, '*');
+      updateTokenStatus(!!token);
+      // Auto-close settings when token is added
+      if (token) {
+        setTimeout(() => {
+          settingsPanel.classList.remove('visible');
+        }, 500);
+      }
+    });
+
+    function updateTokenStatus(configured) {
+      if (configured) {
+        tokenStatus.className = 'settings-status configured';
+        tokenStatus.textContent = 'Token configured';
+      } else {
+        tokenStatus.className = 'settings-status not-configured';
+        tokenStatus.textContent = 'Token not configured';
+      }
+    }
+
+    function getFigmaToken() {
+      return cachedToken;
+    }
 
     // Request design data from sandbox
     analyzeBtn.addEventListener('click', () => {
@@ -217,6 +394,10 @@
 
     // Call backend API
     async function analyzeDesign(designData) {
+      // Store fileKey and frames for comment creation
+      currentFileKey = designData.fileKey;
+      currentFrames = designData.frames || [];
+
       resultDiv.innerHTML = `
         <div class="loading-box">
           <div class="loading-spinner"></div>
@@ -230,7 +411,7 @@
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(designData),
+          body: JSON.stringify({ frames: designData.frames }),
         });
 
         if (!response.ok) {
@@ -239,6 +420,7 @@
         }
 
         const result = await response.json();
+        lastAnalysisResult = result;
         displayResult(result);
 
         // Notify sandbox
@@ -291,10 +473,15 @@
         </div>
       `;
 
-      result.findings.forEach((finding) => {
+      result.findings.forEach((finding, index) => {
         const severityClass = finding.severity.toLowerCase();
+        const affectedFrames = finding.affected_frames || [];
+        const hasToken = !!getFigmaToken();
+        const hasFileKey = !!currentFileKey;
+        const canSaveComment = hasToken && hasFileKey && affectedFrames.length > 0;
+
         html += `
-          <div class="finding-card">
+          <div class="finding-card" data-finding-index="${index}">
             <div class="finding-header ${severityClass}">
               <span class="severity-badge severity-${severityClass}">${finding.severity}</span>
               <span class="finding-title">${escapeHtml(finding.title)}</span>
@@ -305,18 +492,209 @@
               <div class="finding-recommendation">
                 <strong>Fix:</strong> ${escapeHtml(finding.recommendation)}
               </div>
+              ${affectedFrames.length > 0 ? `
+                <div class="affected-frames">
+                  Affects: ${affectedFrames.map(f => escapeHtml(f)).join(', ')}
+                </div>
+              ` : ''}
+              <button class="save-comment-btn" data-finding-index="${index}"
+                ${!canSaveComment ? 'disabled' : ''}
+                title="${!hasToken ? 'Configure Figma token in Settings' : !hasFileKey ? 'File key unavailable' : affectedFrames.length === 0 ? 'No affected frames' : 'Save finding as Figma comment'}">
+                Save as Comment
+              </button>
             </div>
           </div>
         `;
       });
 
+      // Add "Save All as Comment" button
+      const hasToken = !!getFigmaToken();
+      const hasFileKey = !!currentFileKey;
+      const canSaveAll = hasToken && hasFileKey && currentFrames.length > 0;
+
+      html += `
+        <button class="save-all-btn" id="saveAllBtn"
+          ${!canSaveAll ? 'disabled' : ''}
+          title="${!hasToken ? 'Configure Figma token in Settings' : !hasFileKey ? 'File key unavailable' : 'Save all findings as a single comment'}">
+          Save All as Comment
+        </button>
+      `;
+
       resultDiv.innerHTML = html;
+
+      // Attach event listeners to save buttons
+      document.querySelectorAll('.save-comment-btn').forEach(btn => {
+        btn.addEventListener('click', handleSaveComment);
+      });
+
+      // Attach event listener to save all button
+      const saveAllBtn = document.getElementById('saveAllBtn');
+      if (saveAllBtn) {
+        saveAllBtn.addEventListener('click', handleSaveAllComments);
+      }
+    }
+
+    // Find frame ID by name
+    function getFrameIdByName(frameName) {
+      const frame = currentFrames.find(f => f.name === frameName);
+      return frame ? frame.id : null;
+    }
+
+    // Handle save as comment
+    async function handleSaveComment(event) {
+      const btn = event.target;
+      const findingIndex = parseInt(btn.dataset.findingIndex);
+      const finding = lastAnalysisResult?.findings?.[findingIndex];
+
+      if (!finding) return;
+
+      const token = getFigmaToken();
+      if (!token) {
+        alert('Please configure your Figma Personal Access Token in Settings.');
+        return;
+      }
+
+      if (!currentFileKey) {
+        alert('File key not available. Please re-run the analysis.');
+        return;
+      }
+
+      const affectedFrames = finding.affected_frames || [];
+      if (affectedFrames.length === 0) {
+        alert('No affected frames for this finding.');
+        return;
+      }
+
+      // Get the first affected frame's ID
+      const frameId = getFrameIdByName(affectedFrames[0]);
+      if (!frameId) {
+        alert(`Could not find frame "${affectedFrames[0]}". It may have been renamed or deleted.`);
+        return;
+      }
+
+      // Build comment message
+      const commentMessage = `[${finding.severity.toUpperCase()}] ${finding.title}\n\n${finding.description}\n\nRecommendation: ${finding.recommendation}`;
+
+      btn.disabled = true;
+      btn.classList.add('saving');
+      btn.textContent = 'Saving...';
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/comments/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            file_key: currentFileKey,
+            node_id: frameId,
+            message: commentMessage,
+            figma_token: token,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          btn.classList.remove('saving');
+          btn.classList.add('saved');
+          btn.textContent = 'Saved!';
+        } else {
+          throw new Error(result.error || 'Failed to create comment');
+        }
+      } catch (error) {
+        btn.classList.remove('saving');
+        btn.disabled = false;
+        btn.textContent = 'Save as Comment';
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    // Handle save all comments
+    async function handleSaveAllComments(event) {
+      const btn = event.target;
+      const findings = lastAnalysisResult?.findings || [];
+
+      if (findings.length === 0) {
+        alert('No findings to save.');
+        return;
+      }
+
+      const token = getFigmaToken();
+      if (!token) {
+        alert('Please configure your Figma Personal Access Token in Settings.');
+        return;
+      }
+
+      if (!currentFileKey) {
+        alert('File key not available. Please re-run the analysis.');
+        return;
+      }
+
+      // Use the first frame as the target
+      const targetFrame = currentFrames[0];
+      if (!targetFrame) {
+        alert('No frames available.');
+        return;
+      }
+
+      // Build combined comment message
+      let commentMessage = `Design Review Summary (${findings.length} issue${findings.length > 1 ? 's' : ''})\n`;
+      commentMessage += '━'.repeat(30) + '\n\n';
+
+      findings.forEach((finding, index) => {
+        commentMessage += `${index + 1}. [${finding.severity.toUpperCase()}] ${finding.title}\n`;
+        commentMessage += `   ${finding.description}\n`;
+        commentMessage += `   → ${finding.recommendation}\n\n`;
+      });
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/comments/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            file_key: currentFileKey,
+            node_id: targetFrame.id,
+            message: commentMessage,
+            figma_token: token,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          btn.classList.add('saved');
+          btn.textContent = 'Saved!';
+        } else {
+          throw new Error(result.error || 'Failed to create comment');
+        }
+      } catch (error) {
+        btn.disabled = false;
+        btn.textContent = 'Save All as Comment';
+        alert(`Error: ${error.message}`);
+      }
     }
 
     // Handle messages from sandbox
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
       if (!msg) return;
+
+      if (msg.type === 'token-loaded') {
+        const token = msg.data?.token || '';
+        cachedToken = token;
+        figmaTokenInput.value = token;
+        updateTokenStatus(!!token);
+      }
+
+      if (msg.type === 'token-saved') {
+        // Token saved successfully
+      }
 
       if (msg.type === 'design-data') {
         await analyzeDesign(msg.data);

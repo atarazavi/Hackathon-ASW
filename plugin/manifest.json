@@ -5,8 +5,9 @@
   "main": "code.js",
   "ui": "ui.html",
   "editorType": ["figma"],
+  "enablePrivatePluginApi": true,
   "networkAccess": {
     "allowedDomains": ["http://localhost:8000"],
-    "reasoning": "Connect to local Python backend for AI design review"
+    "reasoning": "Connect to local Python backend for AI design review and Figma comments"
   }
 }

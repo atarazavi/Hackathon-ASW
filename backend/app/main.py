@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncAzureOpenAI
 from .config import Settings
-from .routers import review
+from .routers import review, comments
 
 
 @asynccontextmanager
@@ -32,6 +32,7 @@ app.add_middleware(
 )
 
 app.include_router(review.router)
+app.include_router(comments.router)
 
 
 @app.get("/health")

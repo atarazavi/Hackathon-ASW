@@ -93,6 +93,17 @@ function extractFrame(node) {
 }
 figma.ui.onmessage = async (msg) => {
     var _a, _b;
+    // Handle token storage
+    if (msg.type === 'save-token') {
+        await figma.clientStorage.setAsync('figma_pat', msg.data.token);
+        figma.ui.postMessage({ type: 'token-saved' });
+        return;
+    }
+    if (msg.type === 'load-token') {
+        const token = await figma.clientStorage.getAsync('figma_pat');
+        figma.ui.postMessage({ type: 'token-loaded', data: { token: token || '' } });
+        return;
+    }
     if (msg.type === 'get-selection') {
         const selection = figma.currentPage.selection;
         if (selection.length === 0) {
@@ -115,7 +126,10 @@ figma.ui.onmessage = async (msg) => {
         const frames = frameNodes.map(extractFrame);
         figma.ui.postMessage({
             type: 'design-data',
-            data: { frames }
+            data: {
+                frames,
+                fileKey: figma.fileKey
+            }
         });
     }
     if (msg.type === 'analysis-complete') {
