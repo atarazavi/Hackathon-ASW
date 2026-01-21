@@ -13,30 +13,41 @@
       font-weight: 600;
     }
     button {
-      padding: 8px 16px;
+      padding: 10px 16px;
       margin: 4px 0;
       cursor: pointer;
       background: #18A0FB;
       color: white;
       border: none;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 13px;
+      font-weight: 500;
       width: 100%;
     }
     button:hover {
       background: #0D8DE8;
     }
+    button:disabled {
+      background: #B3B3B3;
+      cursor: not-allowed;
+    }
     #result {
       margin-top: 16px;
       padding: 12px;
       background: #F5F5F5;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 12px;
       white-space: pre-wrap;
       min-height: 100px;
+      max-height: 350px;
+      overflow-y: auto;
     }
     .error {
       color: #F24822;
+    }
+    .loading {
+      color: #666;
+      font-style: italic;
     }
   </style>
 </head>
@@ -47,25 +58,98 @@
 
   <script>
     const resultDiv = document.getElementById('result');
+    const analyzeBtn = document.getElementById('analyze');
 
-    document.getElementById('analyze').addEventListener('click', () => {
-      console.log('Button clicked');
-      resultDiv.textContent = 'Getting selection...';
+    const BACKEND_URL = 'http://localhost:8000';
+
+    // Request design data from sandbox
+    analyzeBtn.addEventListener('click', () => {
+      analyzeBtn.disabled = true;
+      resultDiv.textContent = 'Extracting design data...';
+      resultDiv.className = 'loading';
       parent.postMessage({ pluginMessage: { type: 'get-selection' } }, '*');
     });
 
+    // Call backend API
+    async function analyzeDesign(designData) {
+      resultDiv.textContent = 'Analyzing design with AI...';
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/review/analyze`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(designData),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error (${response.status}): ${errorText}`);
+        }
+
+        const result = await response.json();
+        displayResult(result);
+
+        // Notify sandbox
+        parent.postMessage({
+          pluginMessage: {
+            type: 'analysis-complete',
+            data: { findingCount: result.findings?.length ?? 0 }
+          }
+        }, '*');
+
+      } catch (error) {
+        resultDiv.className = 'error';
+        if (error.message.includes('Failed to fetch')) {
+          resultDiv.textContent = `Error: Cannot connect to backend.\n\nMake sure the backend is running:\ncd backend && uvicorn app.main:app --reload`;
+        } else {
+          resultDiv.textContent = `Error: ${error.message}`;
+        }
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    }
+
+    // Display analysis results
+    function displayResult(result) {
+      resultDiv.className = '';
+
+      if (!result.findings || result.findings.length === 0) {
+        resultDiv.textContent = `No issues found!\n\nFrames analyzed: ${result.frames_analyzed}\n\n${result.summary || 'Design looks good.'}`;
+        return;
+      }
+
+      let output = `Found ${result.findings.length} issue(s)\n`;
+      output += `Frames analyzed: ${result.frames_analyzed}\n\n`;
+
+      result.findings.forEach((finding, i) => {
+        output += `${i + 1}. [${finding.severity.toUpperCase()}] ${finding.title}\n`;
+        output += `   Category: ${finding.category}\n`;
+        output += `   ${finding.description}\n`;
+        output += `   Fix: ${finding.recommendation}\n\n`;
+      });
+
+      if (result.summary) {
+        output += `Summary: ${result.summary}`;
+      }
+
+      resultDiv.textContent = output;
+    }
+
+    // Handle messages from sandbox
     window.onmessage = async (event) => {
       const msg = event.data.pluginMessage;
       if (!msg) return;
 
-      if (msg.type === 'selection-data') {
-        // For now, just display selection info
-        // Phase 2B will add backend API call
-        resultDiv.textContent = 'Selected frames:\n' + JSON.stringify(msg.data, null, 2);
+      if (msg.type === 'design-data') {
+        await analyzeDesign(msg.data);
       }
 
       if (msg.type === 'error') {
-        resultDiv.innerHTML = '<span class="error">Error: ' + msg.message + '</span>';
+        resultDiv.className = 'error';
+        resultDiv.textContent = `Error: ${msg.message}`;
+        analyzeBtn.disabled = false;
       }
     };
   </script>
