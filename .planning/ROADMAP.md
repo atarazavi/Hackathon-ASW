@@ -29,12 +29,13 @@ Phases 2A, 2B, 2C execute in parallel (different team members).
   1. Python backend runs locally with Azure OpenAI connection verified
   2. Figma plugin boilerplate loads in Figma (shows plugin window)
   3. Git repo initialized with folder structure for backend/plugin/docs
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Team**: Everyone (30 min)
 
 Plans:
-- [ ] 01-01: Environment and scaffolding
+- [ ] 01-01-PLAN.md — Repository structure and Python backend scaffolding
+- [ ] 01-02-PLAN.md — Figma plugin boilerplate with UI window
 
 ---
 
@@ -137,7 +138,7 @@ Phase 1 (all) -> Phase 2A/2B/2C (parallel) -> Phase 3 -> Phase 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Setup | 0/1 | Not started | - |
+| 1. Setup | 0/2 | Planned | - |
 | 2A. Backend | 0/2 | Not started | - |
 | 2B. Plugin | 0/2 | Not started | - |
 | 2C. Assets | 0/2 | Not started | - |
