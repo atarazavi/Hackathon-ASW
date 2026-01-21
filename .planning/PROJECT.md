@@ -1,12 +1,12 @@
-# Frontend Accelerator MCP
+# Frontend Design Reviewer
 
 ## What This Is
 
-An AI-powered assistant that improves frontend delivery quality by catching problems earlier and helping teams move from design and tickets to implementation faster. It's a Python backend running multiple agents, exposed as an MCP server for VS Code Copilot integration.
+A Figma plugin powered by AI that reviews designs for completeness before developer handoff. Designers select a frame, click review, and get structured findings on missing states, accessibility gaps, design system violations, and responsiveness issues. Python backend uses Azure OpenAI to analyze designs against guidelines.
 
 ## Core Value
 
-Developers get implementation-ready Angular components from a single command — no back-and-forth on missing requirements, design gaps, or pattern inconsistencies.
+Catch design problems before they become code problems — designers get actionable feedback in Figma, not during code review.
 
 ## Requirements
 
@@ -16,28 +16,30 @@ Developers get implementation-ready Angular components from a single command —
 
 ### Active
 
-- [ ] Jira ticket analysis: fetch ticket by ID, extract requirements, identify linked Figma designs
-- [ ] Figma design analysis: extract component structure, identify missing states (loading/error/empty), check accessibility gaps
-- [ ] Workspace pattern analysis: read current Angular project, infer component patterns, coding conventions
-- [ ] Angular component generation: produce implementation-ready code matching workspace patterns
-- [ ] MCP server: expose agents as tools callable from VS Code Copilot
-- [ ] End-to-end flow: ticket ID → enriched spec + generated component
+- [ ] Figma plugin: select frame, trigger review, display findings
+- [ ] Python backend: receive design data, analyze with Azure OpenAI, return structured findings
+- [ ] Missing states detection: identify absent loading, error, empty, disabled, hover states
+- [ ] Accessibility gap detection: contrast issues, missing labels, focus state gaps
+- [ ] Design system violation detection: inconsistent tokens, spacing, colors vs guidelines
+- [ ] Responsiveness check: mobile/tablet breakpoint coverage gaps
+- [ ] Sample guidelines: document defining what to check against
 
 ### Out of Scope
 
-- Jira write access (creating subtasks automatically) — read-only for hackathon demo
-- Figma plugin — stretch goal only, not primary demo
-- Jira automation triggers — stretch goal only
-- Code reviewer agent — nice to have, not in primary flow
+- MCP server / VS Code integration — not needed for design review flow
+- Jira integration — future scope, not this demo
+- Component code generation — future scope
+- Code review agent — future scope
 - Production deployment — local demo only
+- Real-time Figma sync — point-in-time analysis only
 
 ## Context
 
 **Hackathon challenge** with specific success criteria:
-1. Demonstrate at least one end-to-end flow with real design + ticket data
-2. Integrate with common design and ticketing tools (read access)
-3. Provide a usable interface (MCP in VS Code)
-4. Produce outputs that are genuinely actionable for developers
+1. Demonstrate at least one end-to-end flow with real design data
+2. Integrate with common design tools (Figma)
+3. Provide a usable interface (Figma plugin)
+4. Produce outputs that are genuinely actionable for designers
 
 **Team composition (6 people, 3-4 hours):**
 - 1 Full-stack developer
@@ -46,56 +48,54 @@ Developers get implementation-ready Angular components from a single command —
 - 1 BA
 - 4 people have access to coding agents
 
-**Integrations available:**
-- Jira Cloud API (user-level access, read-only)
-- Figma API (can build plugins)
-- Azure OpenAI (LLM provider)
+**Integrations:**
+- Figma Plugin API (build and run plugins)
+- Azure OpenAI (LLM provider for analysis)
 
-**Target output:** Angular components (not React) matching patterns from whatever repo is open in VS Code when agent is invoked.
+**Target output:** Structured design review findings with severity levels and recommendations, displayed directly in Figma.
 
 ## Constraints
 
 - **Timeline**: 3-4 hours total build time
 - **LLM**: Azure OpenAI (company standard)
 - **Backend**: Python
-- **Interface**: MCP server for VS Code Copilot
-- **Demo**: Needs real Jira ticket + Figma design data
+- **Interface**: Figma plugin
+- **Demo**: Needs real Figma design data
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| MCP calls Python backend API | Keeps MCP server thin, agent logic centralized | — Pending |
-| Focus on Ticket→Component flow | Highest demo impact, covers most agents | — Pending |
-| Angular over React | Matches company's existing codebase | — Pending |
+| Figma plugin over MCP/VS Code | Designer stays in their tool, simpler demo flow | — Pending |
+| Focus on design review only | Tighter scope for 3-4 hours, complete demo possible | — Pending |
+| Direct API calls (no MCP layer) | Fewer moving parts, faster to build | — Pending |
 | Sample guidelines for demo | Faster than extracting real company docs | — Pending |
-| Skip Figma plugin for core demo | Time constraint, VS Code is dev's natural workspace | — Pending |
+| Point-in-time analysis | Avoid complexity of real-time sync | — Pending |
 
 ## Team Workstream Plan
 
 **Phase 0: Setup (30 min, everyone together)**
-- Project scaffolding (Python backend, MCP server structure)
-- API keys configured (Azure OpenAI, Jira, Figma)
-- Git repo, basic structure, verify everyone can run locally
+- Project scaffolding (Python backend, Figma plugin boilerplate)
+- Azure OpenAI API key configured and tested
+- Git repo, basic structure, verify plugin loads in Figma
 
 **Then branch out:**
 
 | Person | Role | Primary Task | Deliverable |
 |--------|------|--------------|-------------|
-| Full-stack | Backend lead | Agent orchestration + Azure OpenAI integration | Working agent pipeline |
-| Frontend 1 | MCP server | MCP implementation + VS Code testing | Callable MCP tools |
-| Frontend 2 | Integrations | Jira API + Figma API clients | Data fetching working |
-| Designer 1 | Guidelines | Sample design guidelines document | Guidelines.md for agents |
-| Designer 2 | Demo assets | Sample Figma designs, test scenarios | Demo-ready designs |
-| BA | Demo prep | Sample Jira tickets, test cases, demo script | End-to-end test data |
+| Full-stack | Backend lead | Python API + Azure OpenAI analysis agent | `/analyze` endpoint that returns findings |
+| Frontend 1 | Plugin logic | Figma plugin: extract design data, call backend | Working plugin that sends data |
+| Frontend 2 | Plugin UI | Figma plugin: results display panel | Findings rendered in plugin UI |
+| Designer 1 | Guidelines | Sample design guidelines document | GUIDELINES.md for agent prompts |
+| Designer 2 | Demo assets | Sample Figma designs with intentional issues | Designs that trigger findings |
+| BA | Demo prep | Test scenarios, demo script, edge cases | Rehearsed demo flow |
 
 **Integration points:**
-- Frontend 2's API clients → Full-stack's agent pipeline
-- Full-stack's agents → Frontend 1's MCP server
+- Frontend 1's plugin → Full-stack's backend API
 - Designer 1's guidelines → Full-stack's agent prompts
-- BA's test data → Everyone's integration testing
+- Designer 2's test designs → Everyone's integration testing
 
 **Last hour:** Integration, end-to-end testing, demo rehearsal
 
 ---
-*Last updated: 2026-01-21 after initialization*
+*Last updated: 2026-01-21 after scope refinement (design review via Figma plugin)*
