@@ -12,9 +12,9 @@ Requirements for hackathon demo. Each maps to roadmap phases.
 - [x] **PLUG-01**: Designer can select one or multiple frames in Figma and trigger review ✓
 - [x] **PLUG-02**: Plugin extracts design data (layers, styles, tokens) from all selected frames ✓
 - [x] **PLUG-03**: Plugin calls backend API with extracted design data ✓
-- [ ] **PLUG-04**: Plugin displays structured findings in a results panel
-- [ ] **PLUG-05**: Findings show severity level (critical/warning/info)
-- [ ] **PLUG-06**: Findings show actionable recommendations
+- [x] **PLUG-04**: Plugin displays structured findings in a results panel ✓
+- [x] **PLUG-05**: Findings show severity level (critical/warning/info) ✓
+- [x] **PLUG-06**: Findings show actionable recommendations ✓
 
 ### Backend API
 
@@ -33,8 +33,8 @@ Requirements for hackathon demo. Each maps to roadmap phases.
 
 ### Demo Assets
 
-- [ ] **DEMO-01**: Sample design guidelines document exists (GUIDELINES.md)
-- [ ] **DEMO-02**: Sample Figma design with intentional issues exists
+- [x] **DEMO-01**: Sample design guidelines document exists (GUIDELINES.md) ✓
+- [~] **DEMO-02**: Sample Figma design with intentional issues exists (skipped - using real designs)
 - [ ] **DEMO-03**: Demo script documents the walkthrough flow
 
 ## v2 Requirements
@@ -81,9 +81,9 @@ Which phases cover which requirements.
 | PLUG-01 | Phase 2B | Complete |
 | PLUG-02 | Phase 2B | Complete |
 | PLUG-03 | Phase 2B | Complete |
-| PLUG-04 | Phase 4 | Pending |
-| PLUG-05 | Phase 4 | Pending |
-| PLUG-06 | Phase 4 | Pending |
+| PLUG-04 | Phase 4 | Complete |
+| PLUG-05 | Phase 4 | Complete |
+| PLUG-06 | Phase 4 | Complete |
 | API-01 | Phase 2A | Complete |
 | API-02 | Phase 2A | Complete |
 | API-03 | Phase 2A | Complete |
@@ -93,8 +93,8 @@ Which phases cover which requirements.
 | AGENT-03 | Phase 2A | Complete |
 | AGENT-04 | Phase 2A | Complete |
 | AGENT-05 | Phase 2A | Complete |
-| DEMO-01 | Phase 2C | Pending |
-| DEMO-02 | Phase 2C | Pending |
+| DEMO-01 | Phase 2C | Complete |
+| DEMO-02 | Phase 2C | Skipped |
 | DEMO-03 | Phase 4 | Pending |
 
 **Coverage:**
