@@ -46,6 +46,104 @@ interface ExtractedText {
   fillColor?: string;
 }
 
+// Helper: Convert Figma RGB (0-1) to hex
+function rgbToHex(color: RGB): string {
+  const r = Math.round(color.r * 255);
+  const g = Math.round(color.g * 255);
+  const b = Math.round(color.b * 255);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+}
+
+// Extract a single layer with all its properties
+function extractLayer(node: SceneNode, depth: number = 0): ExtractedLayer | null {
+  // Limit recursion depth to prevent stack overflow (max 15)
+  if (depth > 15) return null;
+
+  // Skip invisible layers to reduce payload
+  if ('visible' in node && !node.visible) return null;
+
+  const layer: ExtractedLayer = {
+    id: node.id,
+    name: node.name,
+    type: node.type,
+    visible: 'visible' in node ? node.visible : true,
+    x: 'x' in node ? node.x : 0,
+    y: 'y' in node ? node.y : 0,
+    width: 'width' in node ? node.width : 0,
+    height: 'height' in node ? node.height : 0,
+    opacity: 'opacity' in node ? node.opacity : 1,
+    fills: [],
+    strokes: [],
+    children: [],
+  };
+
+  // Extract fills (solid colors only for simplicity)
+  if ('fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
+    layer.fills = (node.fills as readonly Paint[])
+      .filter((fill): fill is SolidPaint => fill.type === 'SOLID' && fill.visible !== false)
+      .map(fill => ({
+        type: 'SOLID',
+        color: rgbToHex(fill.color),
+        opacity: fill.opacity ?? 1,
+      }));
+  }
+
+  // Extract strokes
+  if ('strokes' in node && Array.isArray(node.strokes)) {
+    const strokeWeight = 'strokeWeight' in node ?
+      (node.strokeWeight === figma.mixed ? 1 : node.strokeWeight as number) : 0;
+    layer.strokes = (node.strokes as readonly Paint[])
+      .filter((stroke): stroke is SolidPaint => stroke.type === 'SOLID' && stroke.visible !== false)
+      .map(stroke => ({
+        type: 'SOLID',
+        color: rgbToHex(stroke.color),
+        weight: strokeWeight,
+      }));
+  }
+
+  // Extract text properties
+  if (node.type === 'TEXT') {
+    const textNode = node as TextNode;
+    layer.text = {
+      content: textNode.characters,
+      fontSize: textNode.fontSize === figma.mixed ? 'mixed' : textNode.fontSize,
+      fontFamily: textNode.fontName === figma.mixed ? 'mixed' : (textNode.fontName as FontName).family,
+      fontStyle: textNode.fontName === figma.mixed ? 'mixed' : (textNode.fontName as FontName).style,
+    };
+
+    // Get text fill color (first solid fill)
+    if (textNode.fills !== figma.mixed && Array.isArray(textNode.fills)) {
+      const solidFill = (textNode.fills as Paint[]).find(
+        (f): f is SolidPaint => f.type === 'SOLID'
+      );
+      if (solidFill) {
+        layer.text.fillColor = rgbToHex(solidFill.color);
+      }
+    }
+  }
+
+  // Recursively extract children
+  if ('children' in node) {
+    layer.children = (node.children as SceneNode[])
+      .map(child => extractLayer(child, depth + 1))
+      .filter((child): child is ExtractedLayer => child !== null);
+  }
+
+  return layer;
+}
+
+// Extract a complete frame
+function extractFrame(node: SceneNode): ExtractedFrame {
+  const layers = extractLayer(node);
+  return {
+    id: node.id,
+    name: node.name,
+    width: 'width' in node ? node.width : 0,
+    height: 'height' in node ? node.height : 0,
+    layers: layers ? [layers] : [],
+  };
+}
+
 figma.ui.onmessage = async (msg: { type: string; data?: any }) => {
   if (msg.type === 'get-selection') {
     const selection = figma.currentPage.selection;
